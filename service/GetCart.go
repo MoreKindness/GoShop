@@ -25,7 +25,7 @@ func AddToCart(userID int, item model.CartItem) error {
 
 	// 检查商品是否已存在，如果存在则更新数量
 	for i, v := range cartStorage[userID].Items {
-		if v.ID == item.ID {
+		if v.ProductID == item.ProductID {
 			cartStorage[userID].Items[i].Quantity += item.Quantity
 			return nil
 		}
