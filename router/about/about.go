@@ -1,11 +1,8 @@
 package about
 
-import (
-	"github.com/gin-gonic/gin"
-	"gomall/handler/about"
-)
+import "github.com/gin-gonic/gin"
 
 func Register(r *gin.Engine) {
 	root := r.Group("/", RootMw()...)
-	root.POST("/about", append(AboutMw(), about.About)...)
+	root.POST("/about", append(AboutMw())...)
 }
