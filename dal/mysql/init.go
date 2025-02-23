@@ -25,5 +25,3 @@ func Init() {
 	// 初始化数据库连接
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 }
-
-//vim
