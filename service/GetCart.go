@@ -1,62 +1,47 @@
 package service
 
 import (
-	"errors"
+	"gomall/dal"
+	"gomall/dal/mysql"
 	"gomall/model"
-	"sync"
 )
 
-// 模拟数据库，使用内存存储购物车数据
-var cartStorage = make(map[int]*model.Cart)
-var mu sync.Mutex
-
-// AddToCart 添加商品到购物车
-func AddToCart(userID int, item model.CartItem) error {
-	mu.Lock()
-	defer mu.Unlock()
-
-	// 如果用户购物车不存在，初始化一个
-	if _, exists := cartStorage[userID]; !exists {
-		cartStorage[userID] = &model.Cart{
-			UserID: userID,
-			Items:  []model.CartItem{},
-		}
-	}
-
-	// 检查商品是否已存在，如果存在则更新数量
-	for i, v := range cartStorage[userID].Items {
-		if v.ProductID == item.ProductID {
-			cartStorage[userID].Items[i].Quantity += item.Quantity
-			return nil
-		}
-	}
-
-	// 添加新商品
-	cartStorage[userID].Items = append(cartStorage[userID].Items, item)
-	return nil
+// 获取购物车信息
+func GetCart(cartID uint) (*model.Cart, error) {
+	return dal.GetCart(mysql.DB, cartID)
 }
 
-// GetCart 获取用户购物车
-func GetCart(userID int) (*model.Cart, error) {
-	mu.Lock()
-	defer mu.Unlock()
+// 添加商品到购物车
+func AddToCart(cartID uint, item model.CartItem) error {
+	return dal.AddToCart(mysql.DB, cartID, item)
+}
 
-	cart, exists := cartStorage[userID]
-	if !exists {
-		return nil, errors.New("购物车为空")
+// 清空购物车
+func ClearCart(cartID uint) error {
+	return dal.ClearCart(mysql.DB, cartID) // 直接调用 DAL 层方法
+}
+
+// func ClearCart(cartID uint) error {
+// 	// 删除 cart_items 表中所有 cart_id = cartID 的商品
+// 	if err := mysql.DB.Where("cart_id = ?", cartID).Delete(&model.CartItem{}).Error; err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
+
+// 创建购物车
+func CreateCart() (*model.Cart, error) {
+	cart := &model.Cart{}
+	if err := mysql.DB.Create(cart).Error; err != nil {
+		return nil, err
 	}
 	return cart, nil
 }
 
-// ClearCart 清空购物车
-func ClearCart(userID int) error {
-	mu.Lock()
-	defer mu.Unlock()
-
-	if _, exists := cartStorage[userID]; !exists {
-		return errors.New("购物车已为空")
-	}
-
-	delete(cartStorage, userID)
-	return nil
-}
+// func CheckDBConnection() error {
+// 	db, err := mysql.DB.DB() // 获取底层 SQL 连接
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return db.Ping() // 发送 Ping 以检查数据库是否正常连接
+// }

@@ -10,9 +10,11 @@ func Register(r *gin.Engine) {
 	// 购物车相关接口
 
 	root := r.Group("/cart", RootMw()...)
-	root.POST("/add", append(AddCartItemMw(), cart.AddtoCartItem)...)
-	root.GET("/get", append(GetCartMw(), cart.GetCart)...)
-	root.DELETE("/clear", cart.ClearCartHandler) // 清空购物车
+	{
+		root.POST("/add", append(AddCartItemMw(), cart.AddToCartHandler)...)
+		root.GET("/", append(GetCartMw(), cart.GetCartHandler)...)
+		root.DELETE("/clear", cart.ClearCartHandler) // 清空购物车
+	}
 	// cartGroup := r.Group("/cart")
 	// {
 	// 	cartGroup.POST("/add", handler.AddToCartHandler)     // 添加商品到购物车
