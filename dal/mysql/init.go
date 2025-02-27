@@ -7,21 +7,24 @@ import (
 	"gorm.io/gorm"
 )
 
-var (
-	DB  *gorm.DB
-	err error
-)
+var DB *gorm.DB
 
-func Init() {
+func Init() (*gorm.DB, error) {
+	if DB != nil {
+		return DB, nil // 已初始化则直接返回
+	}
 
-	username := "fengguanming"
-	password := "BkGfGw3dlR25PMr6"
-	host := "mysql.sqlpub.com"
-	port := 3306
-	dbname := "fengguanming"
-	timeout := "10s"
+	dsn := "fengguanming:BkGfGw3dlR25PMr6@tcp(mysql.sqlpub.com:3306)/fengguanming?charset=utf8mb4&parseTime=True&loc=Local"
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return nil, fmt.Errorf("数据库连接失败: %w", err)
+	}
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local&timeout=%s", username, password, host, port, dbname, timeout)
-	// 初始化数据库连接
-	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	// 配置连接池
+	sqlDB, _ := db.DB()
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(100)
+
+	DB = db
+	return DB, nil
 }
