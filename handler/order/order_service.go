@@ -1,6 +1,7 @@
 package order
 
 import (
+	"gomall/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -17,5 +18,11 @@ func OrderList(c *gin.Context) {
 	// if err != nil {
 	// 	c.String(http.StatusForbidden, err.Error())
 	// }
-	c.HTML(http.StatusOK, "order", gin.H{})
+	orders, err := service.GetOrderListByUserID(1)
+	if err != nil {
+		c.String(http.StatusForbidden, err.Error())
+	}
+	c.HTML(http.StatusOK, "order", gin.H{
+		"orders": orders,
+	})
 }
