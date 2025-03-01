@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"gomall/dal/mysql"
+	"gomall/model"
 	"gomall/router"
 
 	"github.com/gin-contrib/cors"
@@ -16,6 +18,9 @@ func main() {
 	mysql.Init()
 	fmt.Println(mysql.DB)
 	r := gin.Default()
+	gob.Register(model.User{})
+	gob.Register(model.Cart{})
+	gob.Register(model.CartItem{})
 	//goshop 是用于加密的参数，可以随意设置
 	store := cookie.NewStore([]byte("goshop"))
 	r.Use(sessions.Sessions("goshop", store))

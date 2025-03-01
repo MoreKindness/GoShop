@@ -3,6 +3,7 @@ package home
 import (
 	"net/http"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,6 +17,9 @@ type Item struct {
 // Home .
 // @router / [GET]
 func Home(c *gin.Context) {
+	session := sessions.Default(c)
+	session.Set("user_id", 123)
+	session.Save()
 	items := []Item{
 		{Id: 1, Name: "Product 1", Price: 100.0, Picture: "static/t-shit-1.jpg"},
 		{Id: 2, Name: "Product 2", Price: 200.0, Picture: "t-shit-1.jpg"},

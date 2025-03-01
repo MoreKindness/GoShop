@@ -3,8 +3,10 @@ package checkout
 import (
 	"fmt"
 	"gomall/dal/mysql"
+	"gomall/model"
 	"net/http"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,12 +30,26 @@ type CheckoutForm struct {
 // @router /checkout [GET]
 func Checkout(c *gin.Context) {
 	fmt.Println(mysql.DB)
+	session := sessions.Default(c)
+	var mycart model.Cart
+	mycart.UserID = 123
+	session.Set("cart", mycart)
+	session.Save()
+	var cart = session.Get("cart")
+	fmt.Println("cart: ", cart)
 	c.HTML(http.StatusOK, "checkout", gin.H{})
 }
 
 // CheckoutWaiting .
 // @router /checkout/waiting [POST]
 func CheckoutWaiting(c *gin.Context) {
+	session := sessions.Default(c)
+	cart := session.Get("cart")
+	user_id := session.Get("user_id")
+	if cart == nil {
+	}
+	fmt.Println("cart: ", cart)
+	fmt.Println("user_id: ", user_id)
 	var form CheckoutForm
 	if err := c.ShouldBind(&form); err != nil {
 		fmt.Println("err: ", err)
