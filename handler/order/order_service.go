@@ -1,10 +1,11 @@
 package order
 
 import (
-	"github.com/gin-gonic/gin"
 	"gomall/model"
 	"gomall/service"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 //// OrderList .
