@@ -1,13 +1,16 @@
 package main
 
 import (
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
-	"github.com/gin-gonic/gin"
 	"gomall/dal"
 	"gomall/dal/mysql"
 	"gomall/router"
 	"gomall/service"
+
+	"gomall/router"
+
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {

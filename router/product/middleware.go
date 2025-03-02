@@ -1,18 +1,27 @@
 package product
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 func RootMw() []gin.HandlerFunc {
-	// your code...
-	return nil
+	return []gin.HandlerFunc{
+		func(c *gin.Context) { // your code...
+		},
+	}
 }
 
 func GetproductMw() []gin.HandlerFunc {
-	// your code...
-	return nil
+	return []gin.HandlerFunc{
+		func(c *gin.Context) { // your code...
+		},
+	}
 }
 
-func SearchproducsMw() []gin.HandlerFunc {
-	// your code...
-	return nil
+func SearchProductsMw() []gin.HandlerFunc {
+	return []gin.HandlerFunc{
+		// 参数校验中间件
+		func(c *gin.Context) {
+		},
+	}
 }
