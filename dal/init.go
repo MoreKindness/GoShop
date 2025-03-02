@@ -1,9 +1,9 @@
 package dal
 
 import (
-	"gomall/dal/mysql"
+	"gomall/dal/sql"
 )
 
 func init() {
-	mysql.Init()
+	sql.Init()
 }

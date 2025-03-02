@@ -1,6 +1,11 @@
 package main
 
 import (
+	"gomall/dal"
+	"gomall/dal/mysql"
+	"gomall/router"
+	"gomall/service"
+
 	"encoding/gob"
 	"fmt"
 	"gomall/dal/mysql"
@@ -21,7 +26,10 @@ func main() {
 	gob.Register(model.User{})
 	gob.Register(model.Cart{})
 	gob.Register(model.CartItem{})
-	//goshop 是用于加密的参数，可以随意设置
+
+	//初始化数据库连接
+	mysql.Init()
+
 	store := cookie.NewStore([]byte("goshop"))
 	r.Use(sessions.Sessions("goshop", store))
 
@@ -34,20 +42,14 @@ func main() {
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{"ping": "pong"})
 	})
-	r.GET("sign-in", func(c *gin.Context) {
-		c.HTML(200, "sign-in", gin.H{
-			"title": "登录",
-			"next":  c.Query("next"),
-		})
-	})
-	r.GET("sign-up", func(c *gin.Context) {
-		c.HTML(200, "sign-up", gin.H{
-			"title": "注册",
-		})
-	})
-	r.GET("/redirect", func(c *gin.Context) {
-		c.HTML(200, "about", gin.H{})
-	})
+
+	// 调用自动迁移表结构的函数
+	dal.MigrateOrderTables()
+
 	router.GeneratedRegister(r)
+
+	// 启动订单取消定时任务并传递数据库连接对象
+	go service.CancelExpiredOrders()
+
 	r.Run()
 }
