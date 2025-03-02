@@ -16,6 +16,7 @@ type UserRepository struct {
 }
 
 func NewUserRepository(dao *dao.UserDAO) *UserRepository {
+
 	return &UserRepository{
 		dao: dao,
 	}

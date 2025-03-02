@@ -11,3 +11,11 @@ func OrderlistMw() []gin.HandlerFunc {
 	// your code...
 	return nil
 }
+func PlaceOrderMw() []gin.HandlerFunc {
+	// your code...
+	return nil
+}
+func UpdateOrderMw() []gin.HandlerFunc {
+	// your code...
+	return nil
+}

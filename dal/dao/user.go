@@ -17,6 +17,7 @@ type UserDAO struct {
 }
 
 func NewUserDAO(db *gorm.DB) *UserDAO {
+	db.AutoMigrate(&User{})
 	return &UserDAO{
 		db: db,
 	}

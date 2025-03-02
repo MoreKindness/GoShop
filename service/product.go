@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"gomall/dal"
+	"gomall/dal/mysql"
 	"gomall/model"
 )
 
@@ -14,13 +15,15 @@ type ProductService interface {
 	UpdateProduct(product *model.Product) error
 	DeleteProduct(id int) error
 	ListProducts(page, limit int) ([]model.Product, error)
+	ListProductsByCategory(category string, page, limit int) ([]model.Product, error)
 }
 
 type productService struct {
 	productDAL dal.ProductDAL
 }
 
-func NewProductService(dal dal.ProductDAL) ProductService {
+func NewProductService() ProductService {
+	dal := dal.NewProductDAL(mysql.DB)
 	return &productService{
 		productDAL: dal,
 	}
@@ -60,4 +63,8 @@ func (s *productService) DeleteProduct(id int) error {
 // 分页查询商品列表
 func (s *productService) ListProducts(page, limit int) ([]model.Product, error) {
 	return s.productDAL.List(page, limit)
+}
+
+func (s *productService) ListProductsByCategory(category string, page, limit int) ([]model.Product, error) {
+	return s.productDAL.ListProductsByCategory(category, page, limit)
 }

@@ -54,6 +54,7 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 
 // Searchproducs 查询单个商品（HTTP: GET /products/:id）
 func (h *ProductHandler) SearchProducts(c *gin.Context) {
+
 	id, err := strconv.Atoi(c.Query("id"))
 	log.Printf("id: %d", id)
 	if err != nil {
@@ -66,8 +67,7 @@ func (h *ProductHandler) SearchProducts(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "商品不存在"})
 		return
 	}
-
-	c.JSON(http.StatusOK, product)
+	c.HTML(http.StatusOK, "product", gin.H{"item": product})
 }
 
 // UpdateProduct 更新商品（HTTP: PUT /products/:id）

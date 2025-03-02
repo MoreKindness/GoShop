@@ -1,8 +1,6 @@
 package product
 
 import (
-	"gomall/dal"
-	"gomall/dal/mysql"
 	"gomall/handler/product"
 	"gomall/service"
 
@@ -11,11 +9,10 @@ import (
 
 // Register register routes based on the IDL 'api.${HTTP Method}' annotation.
 func Register(r *gin.Engine) {
-	productDAL := dal.NewProductDAL(mysql.DB)
-	product := product.NewProductHandler(service.NewProductService(productDAL))
+	product := product.NewProductHandler(service.NewProductService())
 	root := r.Group("/", RootMw()...)
 	root.POST("/product", append(GetproductMw(), product.CreateProduct)...)
 	root.GET("/search", append(SearchProductsMw(), product.SearchProducts)...)
 	root.GET("/products", append(GetproductMw(), product.ListProducts)...)
-
+	root.GET("/product", append(GetproductMw(), product.SearchProducts)...)
 }

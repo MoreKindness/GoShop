@@ -13,6 +13,7 @@ type ProductDAL interface {
 	Update(product *model.Product) error
 	Delete(id int) error
 	List(page, limit int) ([]model.Product, error)
+	ListProductsByCategory(category string, page, limit int) ([]model.Product, error)
 }
 
 type productDAL struct {
@@ -50,5 +51,11 @@ func (d *productDAL) List(page, limit int) ([]model.Product, error) {
 	var products []model.Product
 	offset := (page - 1) * limit
 	err := d.db.Offset(offset).Limit(limit).Find(&products).Error
+	return products, err
+}
+
+func (d *productDAL) ListProductsByCategory(category string, page, limit int) ([]model.Product, error) {
+	var products []model.Product
+	err := d.db.Where("description = ?", category).Offset((page - 1) * limit).Limit(limit).Find(&products).Error
 	return products, err
 }
