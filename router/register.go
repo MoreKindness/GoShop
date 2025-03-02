@@ -1,7 +1,6 @@
 package router
 
 import (
-	"github.com/gin-gonic/gin"
 	"gomall/router/about"
 	"gomall/router/auth"
 	"gomall/router/cart"
@@ -10,6 +9,8 @@ import (
 	"gomall/router/home"
 	"gomall/router/order"
 	"gomall/router/product"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GeneratedRegister(r *gin.Engine) {
