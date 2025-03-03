@@ -6,15 +6,26 @@ import (
 	"gomall/router"
 	"gomall/service"
 
+	"encoding/gob"
+	"fmt"
+	"gomall/dal/mysql"
+	"gomall/model"
 	"gomall/router"
 
+	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	mysql.Init()
+	fmt.Println(mysql.DB)
 	r := gin.Default()
+	gob.Register(model.User{})
+	gob.Register(model.Cart{})
+	gob.Register(model.CartItem{})
 
 	//初始化数据库连接
 	mysql.Init()
@@ -24,6 +35,10 @@ func main() {
 
 	store := cookie.NewStore([]byte("goshop"))
 	r.Use(sessions.Sessions("goshop", store))
+
+	r.Use(gzip.Gzip(gzip.DefaultCompression))
+	r.Use(cors.Default())
+
 	r.LoadHTMLGlob("template/*")
 	r.Delims("{{", "}}")
 	r.Static("/static", "./static")
