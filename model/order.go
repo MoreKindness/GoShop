@@ -35,7 +35,7 @@ type Consignee struct {
 	City          string `json:"city"`
 	State         string `json:"status"`
 	Country       string `json:"country"`
-	ZipCode       int32  `json:"zip_code"`
+	ZipCode       int32  `json:"zip_code"` //邮编
 }
 
 // OrderItem 一个订单中的单个商品项
@@ -43,8 +43,12 @@ type OrderItem struct {
 	Base
 	ProductId    uint32  `json:"product_id"`
 	OrderIdRefer string  `json:"order_id_refer" gorm:"size:256;index"`
-	Quantity     int32   `json:"quantity"`
-	Cost         float32 `json:"cost"`
+	Quantity     int32   `json:"quantity"` //商品数量
+	Price        float64 `json:"price"`    //单价
+	ProductName  string  `json:"product_name"`
+	Picture      string  `json:"picture"`
+	Description  string  `json:"description"`
+	Cost         float32 `json:"cost"` //成本
 }
 
 // Order 一个订单，包含订单的基本信息

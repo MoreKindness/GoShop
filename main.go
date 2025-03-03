@@ -30,6 +30,9 @@ func main() {
 	//初始化数据库连接
 	mysql.Init()
 
+	// 调用自动迁移表结构的函数
+	dal.MigrateOrderTables()
+
 	store := cookie.NewStore([]byte("goshop"))
 	r.Use(sessions.Sessions("goshop", store))
 
@@ -43,13 +46,10 @@ func main() {
 		c.JSON(200, gin.H{"ping": "pong"})
 	})
 
-	// 调用自动迁移表结构的函数
-	dal.MigrateOrderTables()
-
 	router.GeneratedRegister(r)
 
 	// 启动订单取消定时任务并传递数据库连接对象
 	go service.CancelExpiredOrders()
 
-	r.Run()
+	r.Run(":8080")
 }

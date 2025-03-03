@@ -2,20 +2,31 @@ package service
 
 import (
 	"fmt"
-	"github.com/google/uuid"
+	"github.com/bwmarrin/snowflake"
 	"gomall/dal"
 	"gomall/dal/mysql"
 	"gomall/model"
 	"log"
+	"strconv"
 	"time"
 )
 
 // PlaceOrder 处理创建订单的请求
 func PlaceOrder(order *model.Order) error {
-	// 在创建订单对象之前生成一个唯一的 OrderId
-	orderId := uuid.New().String()
+	// 在创建订单对象之前生成一个唯一的 Id
+	//orderId := uuid.New().String()
+	node, _ := snowflake.NewNode(1)
+	Id := node.Generate()
+	orderId := strconv.FormatUint(uint64(Id), 10)
+
+	base := model.Base{
+		ID:        uint(Id),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
 
 	o := &model.Order{
+		Base:         base,
 		UserId:       order.UserId,
 		OrderId:      orderId, // 使用 UUID 作为 OrderId
 		UserCurrency: order.UserCurrency,
@@ -28,7 +39,7 @@ func PlaceOrder(order *model.Order) error {
 			ProductId:    item.ProductId,
 			OrderIdRefer: orderId, // 使用相同的 OrderId
 			Quantity:     item.Quantity,
-			Cost:         item.Cost,
+			Price:        item.Price,
 		}
 	}
 
@@ -40,7 +51,7 @@ func PlaceOrder(order *model.Order) error {
 }
 
 // UpdateOrder 更新订单信息
-func UpdateOrder(ID uint, userID uint32, consignee *model.Consignee) error {
+func UpdateOrder(ID uint, userID uint32, consignee *model.Consignee, updatedAt time.Time) error {
 	order, err := dal.GetOrder(mysql.DB, ID)
 	if err != nil {
 		return fmt.Errorf("获取订单失败: %w", err)
@@ -51,11 +62,39 @@ func UpdateOrder(ID uint, userID uint32, consignee *model.Consignee) error {
 	}
 
 	order.Consignee = *consignee
+	order.UpdatedAt = updatedAt
 
 	if err := dal.UpdateOrder(mysql.DB, order); err != nil {
 		return fmt.Errorf("更新订单失败: %w", err)
 	}
 
+	return nil
+}
+
+// ShowOrder 显示某个订单
+func ShowOrder(ID uint) (*model.Order, error) {
+	order, err := dal.GetOrder(mysql.DB, ID)
+	if err != nil {
+		return nil, err
+	}
+	return order, nil
+}
+
+// GetAllOrders 获取用户的所有订单
+func GetAllOrders(userID uint32) ([]model.Order, error) {
+	orders, err := dal.ListOrders(mysql.DB, userID)
+	if err != nil {
+		return nil, fmt.Errorf("获取用户所有订单失败: %w", err)
+	}
+	return orders, nil
+
+}
+
+// CancelOrder 取消订单
+func CancelOrder(ID uint) error {
+	if err := dal.CancelOrder(mysql.DB, ID); err != nil {
+		return fmt.Errorf("取消订单失败: %w", err)
+	}
 	return nil
 }
 
