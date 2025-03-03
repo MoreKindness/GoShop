@@ -2,7 +2,6 @@ package checkout
 
 import (
 	"fmt"
-	"gomall/dal/mysql"
 	"gomall/model"
 	"net/http"
 
@@ -29,13 +28,19 @@ type CheckoutForm struct {
 // Checkout .
 // @router /checkout [GET]
 func Checkout(c *gin.Context) {
-	fmt.Println(mysql.DB)
 	session := sessions.Default(c)
-	var mycart model.Cart
-	mycart.UserID = 123
-	session.Set("cart", mycart)
-	session.Save()
+	var _cart model.Cart
 	var cart = session.Get("cart")
+	if cart == nil {
+
+	} else {
+		//转换cart格式
+		_cart = cart.(model.Cart)
+	}
+	var total float64 = 0
+	for _, v := range _cart.Items {
+		total += v.Price * float64(v.Quantity)
+	}
 	fmt.Println("cart: ", cart)
 	c.HTML(http.StatusOK, "checkout", gin.H{})
 }
@@ -48,17 +53,13 @@ func CheckoutWaiting(c *gin.Context) {
 	user_id := session.Get("user_id")
 	if cart == nil {
 	}
-	fmt.Println("cart: ", cart)
-	fmt.Println("user_id: ", user_id)
 	var form CheckoutForm
 	if err := c.ShouldBind(&form); err != nil {
-		fmt.Println("err: ", err)
-		fmt.Println("错了")
 	}
-	fmt.Println("Email:", form.Email)
-	fmt.Println("Firstname:", form.Firstname)
-	fmt.Println("Lastname:", form.Lastname)
-	c.HTML(http.StatusOK, "waiting", gin.H{})
+	c.HTML(http.StatusOK, "waiting", gin.H{
+		"cart":    cart,
+		"user_id": user_id,
+	})
 }
 
 // CheckoutResult .

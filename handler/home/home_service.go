@@ -1,6 +1,8 @@
 package home
 
 import (
+	"gomall/model"
+	"gomall/service"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
@@ -17,17 +19,24 @@ type Item struct {
 // Home .
 // @router / [GET]
 func Home(c *gin.Context) {
+	var report = make(map[string]interface{})
 	session := sessions.Default(c)
-	session.Set("user_id", 123)
-	session.Save()
-	items := []Item{
-		{Id: 1, Name: "Product 1", Price: 100.0, Picture: "static/t-shit-1.jpg"},
-		{Id: 2, Name: "Product 2", Price: 200.0, Picture: "t-shit-1.jpg"},
-		{Id: 3, Name: "Product 3", Price: 300.0, Picture: "t-shit-1.jpg"},
+	user_id := session.Get("user_id")
+	if user_id != nil {
+		report["user_id"] = user_id
 	}
-	c.HTML(http.StatusOK, "home", gin.H{
-		"user_id":  "1234567890",
-		"cart_num": "10",
-		"items":    items,
-	})
+	cart := session.Get("cart")
+	var _cart model.Cart
+	if cart != nil {
+		_cart = cart.(model.Cart)
+		report["cart_num"] = len(_cart.Items)
+	}
+	session.Save()
+	product_service := service.NewProductService()
+	products, err := product_service.ListProducts(1, 4)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	report["items"] = products
+	c.HTML(http.StatusOK, "home", report)
 }

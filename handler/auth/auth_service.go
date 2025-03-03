@@ -4,6 +4,9 @@ import (
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"gomall/dal"
+	"gomall/dal/dao"
+	"gomall/dal/mysql"
 	"gomall/model"
 	"gomall/service"
 	"net/http"
@@ -20,7 +23,8 @@ type UserHandler struct {
 	svc            *service.UserService
 }
 
-func NewUserHandler(svc *service.UserService) *UserHandler {
+func NewUserHandler() *UserHandler {
+	svc := service.NewUserService(dal.NewUserRepository(dao.NewUserDAO(mysql.DB)))
 	return &UserHandler{
 		emailRexExp:    regexp.MustCompile(emailRegexPattern, regexp.None),
 		passwordRexExp: regexp.MustCompile(passwordRegexPattern, regexp.None),
@@ -29,40 +33,17 @@ func NewUserHandler(svc *service.UserService) *UserHandler {
 }
 
 // 注册路由组
-func (h *UserHandler) RegisterRoutes(server *gin.Engine) {
-	ug := server.Group("/auth")
-	ug.GET("/register", h.SignUpPage) // 显示注册页面
-	ug.POST("/register", h.SignUp)    // 处理注册表单
-	ug.GET("/login", h.LoginPage)     // 显示注册页面
-	ug.POST("/login", h.Login)        // 处理注册表单
-
-	ug.GET("/home", h.HomePage) // 主界面路由
-
-}
+//func (h *UserHandler) RegisterRoutes(server *gin.Engine) {
+//	//ug := server.Group("/auth")
+//	//ug.GET("/register", h.SignUpPage) // 显示注册页面
+//	//ug.POST("/register", h.SignUp)    // 处理注册表单
+//	//ug.GET("/login", h.LoginPage)     // 显示注册页面
+//	//ug.POST("/login", h.Login)        // 处理注册表单
+//	//ug.GET("/home", h.HomePage)       // 主界面路由
+//}
 
 // Register .
 // @router /auth/register [POST]
-
-// 显示注册页面
-func (h *UserHandler) SignUpPage(ctx *gin.Context) {
-	ctx.HTML(http.StatusOK, "sign-up", gin.H{
-		"error": "", // 初始没有错误
-	})
-}
-
-// 显示登录页面
-func (h *UserHandler) LoginPage(ctx *gin.Context) {
-	ctx.HTML(http.StatusOK, "sign-in", gin.H{
-		"error": "", // 初始没有错误
-	})
-}
-
-// 显示主页面
-func (h *UserHandler) HomePage(ctx *gin.Context) {
-	ctx.HTML(http.StatusOK, "home", gin.H{
-		"error": "", // 初始没有错误
-	})
-}
 
 func (h *UserHandler) SignUp(ctx *gin.Context) {
 	type SignUpReq struct {
@@ -144,16 +125,14 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 	switch err {
 	case nil:
 		sess := sessions.Default(ctx)
-		sess.Set("userId", u.ID)
-		sess.Options(sessions.Options{MaxAge: 900})
+		sess.Set("user_id", u.ID)
+		//sess.Options(sessions.Options{MaxAge: 900})
 		err = sess.Save()
 		if err != nil {
 			RenderPageMsg(ctx, pageName, "系统错误！")
 			return
 		}
-		RenderPageMsg(ctx, pageName, "登录成功！")
-
-		//ctx.Redirect(http.StatusFound, "auth/home") // 登录成功后重定向到主页
+		ctx.Redirect(http.StatusFound, "/") // 登录成功后重定向到主页
 		return
 	case service.ErrInvalidUserOrPassword:
 		RenderPageMsg(ctx, pageName, "用户名或密码错误！")
@@ -166,5 +145,9 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 // Logout .
 // @router /auth/logout [POST]
 func Logout(c *gin.Context) {
+	session := sessions.Default(c)
+	session.Delete("user_id")
+	session.Delete("cart")
+	session.Save()
 	c.Redirect(http.StatusFound, "/")
 }
