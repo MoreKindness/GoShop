@@ -24,7 +24,7 @@ func NewProductHandler(productService service.ProductService) *ProductHandler {
 	return &ProductHandler{productService: productService}
 }
 
-// GetProductByID 创建商品（HTTP: POST /products）
+// CreateProduct 创建商品（HTTP: POST /products）
 func (h *ProductHandler) CreateProduct(c *gin.Context) {
 	var product model.Product
 	if err := c.ShouldBindJSON(&product); err != nil {
@@ -52,7 +52,7 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 	})
 }
 
-// Searchproducs 查询单个商品（HTTP: GET /products/:id）
+// SearchProducts 查询单个商品（HTTP: GET /products/:id）
 func (h *ProductHandler) SearchProducts(c *gin.Context) {
 
 	id, err := strconv.Atoi(c.Query("id"))
