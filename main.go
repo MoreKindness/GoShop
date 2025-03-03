@@ -7,12 +7,13 @@ import (
 	"gomall/service"
 
 	"encoding/gob"
+	"gomall/model"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
-	"gomall/model"
 )
 
 func main() {
@@ -23,6 +24,9 @@ func main() {
 	gob.Register(model.CartItem{})
 	//初始化数据库连接
 	mysql.Init()
+
+	// 调用自动迁移表结构的函数
+	dal.MigrateOrderTables()
 
 	store := cookie.NewStore([]byte("goshop"))
 	r.Use(sessions.Sessions("goshop", store))
@@ -60,5 +64,5 @@ func main() {
 	// 启动订单取消定时任务并传递数据库连接对象
 	go service.CancelExpiredOrders()
 
-	r.Run()
+	r.Run(":8080")
 }
