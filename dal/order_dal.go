@@ -15,6 +15,10 @@ func MigrateOrderTables() {
 	if err != nil {
 		log.Println("failed to migrate database: ", err)
 	}
+	err = mysql.DB.AutoMigrate(&model.Cart{}, &model.CartItem{})
+	if err != nil {
+		log.Println("failed to migrate database: ", err)
+	}
 }
 
 // CreateOrder 创建新的订单

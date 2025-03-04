@@ -40,6 +40,8 @@ func PlaceOrder(order *model.Order) error {
 			OrderIdRefer: orderId, // 使用相同的 OrderId
 			Quantity:     item.Quantity,
 			Price:        item.Price,
+			ProductName:  item.ProductName,
+			Picture:      item.Picture,
 		}
 	}
 
