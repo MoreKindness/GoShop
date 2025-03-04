@@ -11,7 +11,7 @@ func Register(r *gin.Engine) {
 
 	root := r.Group("/cart", RootMw()...)
 	{
-		root.POST("/add", append(AddCartItemMw(), cart.AddToCartHandler)...)
+		root.POST("/", append(AddCartItemMw(), cart.AddToCartHandler)...)
 		root.GET("/", append(GetCartMw(), cart.GetCartHandler)...)
 		root.DELETE("/clear", cart.ClearCartHandler) // 清空购物车
 	}

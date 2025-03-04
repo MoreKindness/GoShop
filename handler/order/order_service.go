@@ -1,6 +1,7 @@
 package order
 
 import (
+	"github.com/gin-contrib/sessions"
 	"gomall/model"
 	"gomall/service"
 	"net/http"
@@ -23,6 +24,12 @@ type Request struct {
 // OrdersResponse 包含多个订单的响应
 type OrdersResponse struct {
 	Orders []Request `json:"orders"`
+}
+
+type OrderReport struct {
+	CreatedDate string `json:"created_date"`
+	OrderId     uint   `json:"id"`
+	Items       []Request
 }
 
 // Response 获取订单返回数据
@@ -128,14 +135,46 @@ func UpdateOrderHandler(c *gin.Context) {
 
 // ListOrdersHandler 处理获取所有订单的请求
 func ListOrdersHandler(c *gin.Context) {
-	userID := c.GetInt("user_id")
-	orders, err := service.GetAllOrders(uint32(userID))
+	report := make(map[string]interface{})
+	session := sessions.Default(c)
+	userID := session.Get("user_id")
+	if userID == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+	cart := session.Get("cart")
+	if cart == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+	_cart := cart.(model.Cart)
+	report["user_id"] = userID
+	report["cart_num"] = len(_cart.Items)
+	orders, err := service.GetAllOrders(uint32(_cart.ID))
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	res := make([]OrderReport, 0)
+	for _, order := range orders {
+		req := OrderReport{
+			CreatedDate: order.CreatedAt.Format("2006-01-02"),
+			OrderId:     order.ID,
+		}
+		for _, p := range order.OrderItems {
+			req.Items = append(req.Items, Request{
+				ProductName: p.ProductName,
+				Picture:     p.Picture,
+				Qty:         p.Quantity,
+				Cost:        p.Price,
+			})
+		}
+		res = append(res, req)
+	}
+	report["orders"] = res
 	// HTML 将订单数据传递给模板
-	c.HTML(http.StatusOK, "order", Response(orders))
+	c.HTML(http.StatusOK, "order", report)
 }
 
 // CancelOrderHandler 处理取消订单的请求

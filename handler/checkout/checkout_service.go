@@ -1,8 +1,8 @@
 package checkout
 
 import (
-	"fmt"
 	"gomall/model"
+	"gomall/service"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
@@ -14,7 +14,7 @@ type CheckoutForm struct {
 	Firstname       string `protobuf:"bytes,2,opt,name=firstname,proto3" json:"firstname,omitempty" form:"firstname"`
 	Lastname        string `protobuf:"bytes,3,opt,name=lastname,proto3" json:"lastname,omitempty" form:"lastname"`
 	Street          string `protobuf:"bytes,4,opt,name=street,proto3" json:"street,omitempty" form:"street"`
-	Zipcode         string `protobuf:"bytes,5,opt,name=zipcode,proto3" json:"zipcode,omitempty" form:"zipcode"`
+	Zipcode         int32  `protobuf:"bytes,5,opt,name=zipcode,proto3" json:"zipcode,omitempty" form:"zipcode"`
 	Province        string `protobuf:"bytes,6,opt,name=province,proto3" json:"province,omitempty" form:"province"`
 	Country         string `protobuf:"bytes,7,opt,name=country,proto3" json:"country,omitempty" form:"country"`
 	City            string `protobuf:"bytes,8,opt,name=city,proto3" json:"city,omitempty" form:"city"`
@@ -28,21 +28,27 @@ type CheckoutForm struct {
 // Checkout .
 // @router /checkout [GET]
 func Checkout(c *gin.Context) {
+	report := make(map[string]interface{})
 	session := sessions.Default(c)
 	var _cart model.Cart
 	var cart = session.Get("cart")
 	if cart == nil {
-
+		c.HTML(http.StatusBadRequest, "home", gin.H{"error": "用户登录已失效"})
 	} else {
 		//转换cart格式
 		_cart = cart.(model.Cart)
+		report["cart_num"] = len(_cart.Items)
+	}
+	user := session.Get("user_id")
+	if user != nil {
+		report["user_id"] = user
 	}
 	var total float64 = 0
 	for _, v := range _cart.Items {
 		total += v.Price * float64(v.Quantity)
 	}
-	fmt.Println("cart: ", cart)
-	c.HTML(http.StatusOK, "checkout", gin.H{})
+	report["total"] = total
+	c.HTML(http.StatusOK, "checkout", report)
 }
 
 // CheckoutWaiting .
@@ -52,18 +58,61 @@ func CheckoutWaiting(c *gin.Context) {
 	cart := session.Get("cart")
 	user_id := session.Get("user_id")
 	if cart == nil {
+		c.HTML(http.StatusOK, "waiting", gin.H{
+			"error": "未登录用户",
+		})
+		return
 	}
+	_cart := cart.(model.Cart)
 	var form CheckoutForm
 	if err := c.ShouldBind(&form); err != nil {
+		c.HTML(http.StatusOK, "waiting", gin.H{
+			"cart":    cart,
+			"user_id": user_id,
+			"error":   err.Error(),
+		})
+		return
 	}
-	c.HTML(http.StatusOK, "waiting", gin.H{
-		"cart":    cart,
-		"user_id": user_id,
-	})
+	order := model.Order{
+		UserId:       uint32(_cart.ID),
+		UserCurrency: "$",
+		OrderState:   model.OrderStatePaid,
+		Consignee: model.Consignee{
+			Email:         form.Email,
+			StreetAddress: form.Street,
+			City:          form.City,
+			State:         form.Province,
+			Country:       form.Country,
+			ZipCode:       form.Zipcode,
+		},
+	}
+	for _, v := range _cart.Items {
+		order.OrderItems = append(order.OrderItems, model.OrderItem{
+			ProductId:   uint32(v.ProductID),
+			Quantity:    int32(v.Quantity),
+			Cost:        float32(v.Price),
+			Price:       v.Price,
+			ProductName: v.Name,
+		})
+	}
+	service.PlaceOrder(&order)
+	c.Redirect(http.StatusMovedPermanently, "/checkout/result")
 }
 
 // CheckoutResult .
 // @router /checkout/result [GET]
 func CheckoutResult(c *gin.Context) {
-	c.HTML(http.StatusOK, "result", gin.H{})
+	session := sessions.Default(c)
+	user_id := session.Get("user_id")
+	cart := session.Get("cart")
+	if cart == nil {
+		c.HTML(http.StatusOK, "result", gin.H{"error": "用户登录已失效"})
+		return
+	}
+	_cart := cart.(model.Cart)
+
+	c.HTML(http.StatusOK, "result", gin.H{
+		"user_id":  user_id,
+		"cart_num": len(_cart.Items),
+	})
 }

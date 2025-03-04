@@ -126,6 +126,11 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 	case nil:
 		sess := sessions.Default(ctx)
 		sess.Set("user_id", u.ID)
+		user_cat, err := service.GetCart(u.ID)
+		if err != nil {
+			RenderPageMsg(ctx, pageName, "系统错误！")
+		}
+		sess.Set("cart", user_cat)
 		//sess.Options(sessions.Options{MaxAge: 900})
 		err = sess.Save()
 		if err != nil {
@@ -137,7 +142,7 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 	case service.ErrInvalidUserOrPassword:
 		RenderPageMsg(ctx, pageName, "用户名或密码错误！")
 	default:
-		RenderPageMsg(ctx, pageName, "系统错误！")
+		RenderPageMsg(ctx, pageName, "用户未注册")
 
 	}
 }

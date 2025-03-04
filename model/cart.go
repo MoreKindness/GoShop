@@ -16,11 +16,14 @@ type Cart struct {
 }
 
 type CartItem struct {
-	ID        uint    `json:"id" gorm:"primaryKey"`
-	CartID    uint    `json:"cart_id"`
-	ProductID uint    `json:"product_id"`
-	Quantity  uint    `json:"quantity"`
-	Price     float64 `json:"price"`
+	ID          uint    `json:"id" gorm:"primaryKey"`
+	CartID      uint    `json:"cart_id"`
+	ProductID   uint    `json:"product_id"`
+	Name        string  `json:"name"`
+	Picture     string  `json:"picture"`
+	Description string  `json:"description"`
+	Quantity    uint    `json:"quantity"`
+	Price       float64 `json:"price"`
 }
 
 // // 购物车项模型

@@ -12,7 +12,7 @@ func GetCart(cartID uint) (*model.Cart, error) {
 }
 
 // 添加商品到购物车
-func AddToCart(cartID uint, item model.CartItem) error {
+func AddToCart(cartID uint, item model.CartItem) (model.CartItem, error) {
 	return dal.AddToCart(mysql.DB, cartID, item)
 }
 

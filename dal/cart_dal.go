@@ -22,17 +22,17 @@ func GetCart(db *gorm.DB, cartID uint) (*model.Cart, error) {
 }
 
 // 添加商品到购物车
-func AddToCart(db *gorm.DB, cartID uint, item model.CartItem) error {
+func AddToCart(db *gorm.DB, cartID uint, item model.CartItem) (model.CartItem, error) {
 	var existingItem model.CartItem
 
 	if err := db.Where("cart_id = ? AND product_id = ?", cartID, item.ProductID).
 		First(&existingItem).Error; err == nil {
 		existingItem.Quantity += item.Quantity
-		return db.Save(&existingItem).Error
+		return existingItem, db.Save(&existingItem).Error
 	}
 
 	item.CartID = cartID
-	return db.Create(&item).Error
+	return item, db.Create(&item).Error
 }
 
 // 清空购物车

@@ -1,6 +1,7 @@
 package product
 
 import (
+	"github.com/gin-contrib/sessions"
 	"gomall/model"
 	"gomall/service"
 	"log"
@@ -54,7 +55,14 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 
 // SearchProducts 查询单个商品（HTTP: GET /products/:id）
 func (h *ProductHandler) SearchProducts(c *gin.Context) {
-
+	session := sessions.Default(c)
+	user_id := session.Get("user_id")
+	cart := session.Get("cart")
+	if cart == nil {
+		c.HTML(http.StatusOK, "product", gin.H{"error": "用户登录已失效"})
+		return
+	}
+	_cart := cart.(model.Cart)
 	id, err := strconv.Atoi(c.Query("id"))
 	log.Printf("id: %d", id)
 	if err != nil {
@@ -67,11 +75,15 @@ func (h *ProductHandler) SearchProducts(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "商品不存在"})
 		return
 	}
-	c.HTML(http.StatusOK, "product", gin.H{"item": product})
+	c.HTML(http.StatusOK, "product", gin.H{"item": product,
+		"user_id":  user_id,
+		"cart_num": len(_cart.Items),
+	})
 }
 
 // UpdateProduct 更新商品（HTTP: PUT /products/:id）
 func (h *ProductHandler) UpdateProduct(c *gin.Context) {
+
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的商品ID"})
